@@ -5,19 +5,15 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 
 import algorithms.mazeGenerators.Maze3d;
 import algorithms.mazeGenerators.Maze3dGenerator;
 import algorithms.mazeGenerators.MyMaze3dGenerator;
-import algorithms.mazeGenerators.Position;
-import algorithms.search.Astar;
-import algorithms.search.Bfs;
-import algorithms.search.MazeManhattanDistance;
-import algorithms.search.Searcher;
-import algorithms.search.Solution;
 import io.MyCompressorOutputStream;
 import io.MyDecompressorInputStream;
+import view.Cli;
 
 public class Demo {
 
@@ -65,10 +61,17 @@ public class Demo {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+		String str="12345";
+		byte[] c= str.getBytes();
+		for(int i=0;i<5;i++){
+			System.out.println(b[i]);
+		}
 		Maze3d loaded = new Maze3d(b);
 		loaded.print();
 		System.out.println(loaded.equals(maze));
+		
+		Cli myCli = new Cli(new InputStreamReader(System.in),null,null);
+		myCli.start();
 		
 	}
 
