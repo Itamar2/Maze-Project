@@ -44,9 +44,16 @@ public class MyCompressorOutputStream extends OutputStream {
 
 	@Override
 	public void flush() throws IOException {
-		super.flush();
 		out.write(currentByte);
 		out.write(byteCounter);
 		byteCounter=0;
 	}
+
+	@Override
+	public void close() throws IOException {
+		super.close();
+		out.close();
+	}
+	
+	
 }

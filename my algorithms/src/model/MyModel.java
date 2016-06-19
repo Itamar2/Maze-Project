@@ -1,11 +1,14 @@
 package model;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.Format;
 import java.util.HashMap;
 import algorithms.demo.Maze3dSearchable;
 import algorithms.mazeGenerators.Maze3d;
@@ -26,6 +29,7 @@ public class MyModel implements Model {
 	private Controller c;
 	private HashMap<String,Maze3d> mazes;
 	private HashMap<Maze3d,Solution<Position>> solutions;
+	public static final String FORMAT = "maz";
 	
 	public MyModel(Controller c) {
 		this.c=c;
@@ -53,13 +57,15 @@ public class MyModel implements Model {
 			c.display("maze name: "+" not found");
 			return;
 		}
-		BufferedOutputStream out = null;
-		Maze3d myMaze = mazes.get(name);
+		
 		try {
-			out = new BufferedOutputStream(new MyCompressorOutputStream(new FileOutputStream(fileName+".maz")));
+			BufferedOutputStream out = null;
+			Maze3d myMaze = mazes.get(name);
+			out = new BufferedOutputStream(new MyCompressorOutputStream(new FileOutputStream(fileName+"."+FORMAT)));
 			out.write(myMaze.toByteArray());
 			out.flush();
-			out.close();		
+			out.close();
+			c.display("maze "+fileName+"."+FORMAT+" successfully saved");
 		} catch (FileNotFoundException e) {
 			
 		} catch (IOException e) {
@@ -68,39 +74,36 @@ public class MyModel implements Model {
 	}
 	@Override
 	public void loadMaze(String fileName, String name) {
-
-		StringBuilder myBuffer= new StringBuilder();
 		try {
-			BufferedInputStream in=new BufferedInputStream(new MyDecompressorInputStream(new FileInputStream(fileName+".maz")));
-			int c;
-			while((c=in.read())!=-1){
-				myBuffer.append(c);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new MyDecompressorInputStream(new FileInputStream(fileName+"."+FORMAT))));
+			String line;		
+			StringBuilder str = new StringBuilder();
+					
+			while((line = reader.readLine()) != null){
+				str.append(line);						
 			}
-			in.close();
-			byte[] byteMaze =new byte[myBuffer.length()];
-			for(int i=0;i<myBuffer.length();i++){
-				byteMaze[i]=(byte) Character.getNumericValue(myBuffer.charAt(i));
-			}	
-			Maze3d tempMaze = new Maze3d(byteMaze);
-			mazes.put(name,tempMaze);
-			
+			mazes.put(name,new Maze3d(str.toString().getBytes()));
+			reader.close();
+			c.display("maze loaded successfully");
 		} catch (FileNotFoundException e) {
-			c.display(e.getMessage());
+			c.display("there's no such file");
 		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 
 	@Override
 	public void mazeSize(String name) {
-		// TODO Auto-generated method stub
-		
+		Maze3d tempMaze = mazes.get(name);
+		int len = (tempMaze.getMaze3d()).length * ((tempMaze.getMaze3d()[0])).length * ((tempMaze.getMaze3d()[0][0])).length;
+		len*=4;
+		len += 8;
+		c.display(len+" bytes");
 	}
 	
 	@Override
 	public void fileSize(String name) {
-		// TODO Auto-generated method stub
-		
+		File myFile = new File(name+"."+FORMAT);
+		c.display(Long.toString(myFile.length())+" bytes");
 	}
 
 	@Override
@@ -126,4 +129,51 @@ public class MyModel implements Model {
 		solutions.put(mazes.get(name),mySolution);
 		c.display("solution for "+name+" is ready");
 	}
-}
+
+	@Override
+	public void retrieveMaze(String name) {
+		if(!mazes.containsKey(name)){
+			c.display("no such maze found");
+			return;
+		}
+		c.display("start position: "+mazes.get(name).getStartPosition());
+		c.display("goal position: "+mazes.get(name).getGoalPosition());
+		c.setMaze(mazes.get(name).getMaze3d());
+	}
+
+	@Override
+	public void retrieveSolution(String name) {
+		if(!solutions.containsKey(mazes.get(name))){
+			c.display("no such maze");
+			return;
+		}
+		c.display(solutions.get(mazes.get(name)).toString());
+	}
+
+	@Override
+	public void retrieveSectionMaze(char dimension, int index, String name) {
+		if(!mazes.containsKey(name)){
+			c.display("no such maze");
+			return;
+		}
+		switch(dimension){
+		case 'x':
+		case 'X':
+			c.setMaze(mazes.get(name).getCrossSectionByX(index));
+			break;
+		case 'y':
+		case 'Y':
+			c.setMaze(mazes.get(name).getCrossSectionByY(index));
+			break;
+		case 'z':
+		case 'Z':
+			c.setMaze(mazes.get(name).getCrossSectionByZ(index));
+			break;
+			default:
+				break;
+		}
+	}
+
+
+		
+}	

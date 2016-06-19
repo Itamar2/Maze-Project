@@ -8,6 +8,8 @@ public interface Model {
 	public void mazeSize(String name);
 	public void fileSize(String name);
 	public void solveMaze(String name,SearchAlgo algo);
-	
-	
+	public void retrieveMaze(String name);
+	public void retrieveSolution(String name);
+	public void retrieveSectionMaze(char dimension,int index,String name);
+
 }

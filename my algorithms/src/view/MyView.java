@@ -26,7 +26,12 @@ public class MyView implements View {
 
 	@Override
 	public void display(int[][][] maze) {
-		
+		cli.display(maze);
+	}
+
+	@Override
+	public void display(int[][] maze) {
+		cli.display(maze);
 	}
 
 }
