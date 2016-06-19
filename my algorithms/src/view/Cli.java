@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import controller.Command;
@@ -14,15 +15,22 @@ public class Cli extends Thread {
 	private BufferedReader in;
 	private PrintWriter out;
 	private HashMap<String,Command> commands;
+	private ArrayList<Thread> threadsList;
 	
 	public Cli(Reader in,Writer out,HashMap<String,Command> commands) {
 		this.in = new BufferedReader(in);
 		this.out=new PrintWriter(out);
 		this.commands = commands;
+		threadsList=new ArrayList<>();
 	}
 	@Override
 	protected void finalize() throws Throwable {
 		super.finalize();
+		display("waiting for threads to finish");
+		for(Thread t: threadsList){ //waiting for all threads to finish
+			t.join();
+		}
+		display("all threads finished,good bye!");
 		in.close();
 		out.close();
 	}
@@ -31,13 +39,16 @@ public class Cli extends Thread {
 		out.flush();
 	}
 	private void runCommandInThread(Command command,String[] args){
-		new Thread(new Runnable() {
+		
+		Thread myThread = new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
 				command.doCommand(args);
 			}
-		}).start();
+		});
+		threadsList.add(myThread);
+		myThread.start();
 	}
 	public void display(int[][][] maze){
 		for(int i=0;i<maze.length;i++){
@@ -114,13 +125,20 @@ public class Cli extends Thread {
 					String[] strs={str[2]};
 					commands.get("maze size").doCommand(strs);
 				}
-
+				else if(line.toLowerCase().equals("exit")){
+					break; // getting out of this io loop
+				}
 				else{
 					display("wrong input!");
 				}
 			}
 		} catch (IOException e) {
 			out.println(e.getMessage());
+		}
+		try {
+			finalize();
+		} catch (Throwable e) {
+			e.printStackTrace();
 		}
 	}	
 }
